@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import ItemListContainer from "./pages/ItemListContainer";
 import ItemDetailContainer from "./pages/ItemDetailContainer";
@@ -10,7 +10,7 @@ import Checkout from "./pages/Checkout";
 function App() {
   return (
     <CartProvider>
-      <BrowserRouter>
+      <HashRouter>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0f172a' }}>
           <NavBar />
           <div style={{ flex: 1 }}>
@@ -24,7 +24,7 @@ function App() {
           </div>
           <Footer />
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </CartProvider>
   );
 }
