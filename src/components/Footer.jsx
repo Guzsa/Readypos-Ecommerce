@@ -28,7 +28,7 @@ const Footer = () => {
         <div style={{ flex: '1', minWidth: '200px' }}>
           <h4 style={{ marginBottom: '15px' }}>Contacto</h4>
           <p style={{ fontSize: '0.9rem', opacity: '0.8' }}>📍 Villa devoto, CABA</p>
-          <p style={{ fontSize: '0.9rem', opacity: '0.8' }}>📧 santiguzman1336@gmail.com</p>
+          <p style={{ fontSize: '0.9rem', opacity: '0.8' }}>📧 santiguzman2026@yahoo.com.ar</p>
           <p style={{ fontSize: '0.9rem', opacity: '0.8' }}>📞 +54 11 1234-5678</p>
         </div>
 
@@ -38,7 +38,7 @@ const Footer = () => {
   <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
     
     <a 
-      href="https://www.instagram.com/santyguzman27/" 
+      href="" 
       target="_blank" 
       rel="noopener noreferrer"
       style={{ 
