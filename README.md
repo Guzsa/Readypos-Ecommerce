@@ -36,4 +36,4 @@ El proyecto implementa **Variables de Entorno** para la protección de las crede
 **Santiago Guzmán** *Soporte Técnico en AyresIT & Desarrollador Frontend en formación.*
 
 ---
-© 2026 ReadyPOS - Todos los derechos reservados.
+© 2026 ReadyPOS - Todos los derechos reservados.# Readypos-Ecommerce
