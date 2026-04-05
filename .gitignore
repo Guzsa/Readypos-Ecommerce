@@ -34,4 +34,3 @@ dist-ssr
 node_modules/
 
 # Build output
-dist/
