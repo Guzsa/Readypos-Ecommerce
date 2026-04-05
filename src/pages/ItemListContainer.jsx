@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../services/firebaseConfig"; 
+import { db } from "../services/firebaseConfig";
 
 const ItemListContainer = ({ greeting }) => {
   const [products, setProducts] = useState([]);
@@ -25,19 +25,9 @@ const ItemListContainer = ({ greeting }) => {
       .finally(() => setLoading(false));
   }, [categoryId]);
 
-  // --- NUEVA VISTA DE CARGA CON SPINNER ---
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '80vh', 
-        background: '#0f172a',
-        color: 'white'
-      }}>
-        {/* CSS INLINE PARA EL SPINNER */}
+      <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: '80vh', color: 'white' }}>
         <style>{`
           .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
@@ -59,62 +49,57 @@ const ItemListContainer = ({ greeting }) => {
   }
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center', color: 'white', background: '#0f172a', minHeight: '100vh' }}>
-      
+    <div className="container py-4">
+      {/* BANNER PRINCIPAL */}
       {!categoryId && (
-        <div style={{ 
-          background: 'linear-gradient(135deg, #1e293b 0%, #38bdf8 100%)', 
-          padding: '50px 20px', 
-          borderRadius: '15px', 
-          marginBottom: '40px' 
-        }}>
-          <h1>ReadyPOS</h1>
-          <p>Tu aliado en insumos y tecnología comercial.</p>
+        <div className="p-5 mb-4 rounded-3 text-white text-center" 
+             style={{ background: 'linear-gradient(135deg, #1e293b 0%, #38bdf8 100%)' }}>
+          <h1 className="display-4 fw-bold">ReadyPOS</h1>
+          <p className="fs-5">Tu aliado en insumos y tecnología comercial.</p>
         </div>
       )}
 
-      <h2 style={{ marginBottom: '30px', color: '#38bdf8' }}>
+      <h2 className="text-center mb-4" style={{ color: '#38bdf8' }}>
         {categoryId ? `Categoría: ${categoryId.toUpperCase()}` : greeting}
       </h2>
       
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px' }}>
+      {/* GRILLA RESPONSIVE */}
+      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
         {products.length === 0 ? (
-          <p>No se encontraron productos en esta categoría.</p>
+          <div className="col-12 text-center text-white">
+            <p>No se encontraron productos en esta categoría.</p>
+          </div>
         ) : (
           products.map(p => (
-            <div key={p.id} style={{ border: '1px solid #38bdf8', padding: '15px', borderRadius: '10px', width: '250px', background: '#1e293b' }}>
-              
-              <img 
-                src={p.img || "https://via.placeholder.com/150"} 
-                alt={p.name} 
-                style={{ width: '100%', height: '150px', objectFit: 'contain', marginBottom: '15px', borderRadius: '5px', background: 'white' }} 
-              />
-              
-              <h3 style={{ fontSize: '1rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {p.name}
-              </h3>
-
-              <p style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: '15px 0', color: '#38bdf8' }}>
-                ${p.price}
-              </p>
-              
-              <Link 
-                to={`/item/${p.id}`} 
-                style={{ 
-                  display: 'block',
-                  background: '#38bdf8', 
-                  padding: '10px', 
-                  borderRadius: '5px', 
-                  color: '#0f172a', 
-                  fontWeight: 'bold', 
-                  textDecoration: 'none', 
-                  cursor: 'pointer', 
-                  width: '92%',
-                  margin: '0 auto'
-                }}
-              >
-                Ver Detalle
-              </Link>
+            <div key={p.id} className="col">
+              <div className="card h-100 border-0 shadow-sm" style={{ background: '#1e293b', border: '1px solid #38bdf8 !important' }}>
+                
+                <div className="p-3 bg-white m-2 rounded">
+                  <img 
+                    src={p.img || "https://via.placeholder.com/150"} 
+                    alt={p.name} 
+                    className="card-img-top"
+                    style={{ height: '150px', objectFit: 'contain' }} 
+                  />
+                </div>
+                
+                <div className="card-body d-flex flex-column text-center text-white">
+                  <h5 className="card-title fs-6 fw-bold" style={{ height: '50px', overflow: 'hidden' }}>
+                    {p.name}
+                  </h5>
+                  <p className="fs-4 fw-bold" style={{ color: '#38bdf8' }}>
+                    ${p.price}
+                  </p>
+                  
+                  <Link 
+                    to={`/item/${p.id}`} 
+                    className="btn mt-auto fw-bold"
+                    style={{ background: '#38bdf8', color: '#0f172a' }}
+                  >
+                    Ver Detalle
+                  </Link>
+                </div>
+              </div>
             </div>
           ))
         )}
