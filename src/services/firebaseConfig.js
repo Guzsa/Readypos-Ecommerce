@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider } from "firebase/auth"; // Importamos Auth y el Proveedor de Google
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -10,5 +11,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+// Inicializamos la App
 const app = initializeApp(firebaseConfig);
+
+// Exportamos la Base de Datos
 export const db = getFirestore(app);
+
+// Exportamos la Autenticación
+export const auth = getAuth(app);
+
+// Exportamos el Proveedor de Google para el login con un clic
+export const googleProvider = new GoogleAuthProvider();

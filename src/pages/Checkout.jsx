@@ -7,135 +7,191 @@ import { Link } from "react-router-dom";
 const Checkout = () => {
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const { cart, totalPrecio, clearCart } = useContext(CartContext);
 
-  const [buyer, setBuyer] = useState({
-    name: "",
-    phone: "",
-    email: ""
-  });
-
+  const [buyer, setBuyer] = useState({ name: "", phone: "", email: "" });
   const [paymentMethod, setPaymentMethod] = useState("");
+  
+  // Estado para capturar datos de tarjeta o extras
+  const [paymentData, setPaymentData] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvv: ""
+  });
 
   const handleInputChange = (e) => {
     setBuyer({ ...buyer, [e.target.name]: e.target.value });
+    if (errorMsg) setErrorMsg("");
+  };
+
+  const handlePaymentDataChange = (e) => {
+    setPaymentData({ ...paymentData, [e.target.name]: e.target.value });
+    if (errorMsg) setErrorMsg("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // VALIDACIONES DE SEGURIDAD
     if (!paymentMethod) {
-      alert("Por favor, seleccioná un medio de pago.");
+      setErrorMsg("⚠️ Por favor, seleccioná un medio de pago.");
       return;
     }
 
-    // 1. DISPARAMOS EL LOADING
+    if (paymentMethod === "Tarjeta" && (paymentData.cardNumber.length < 16 || !paymentData.cardName)) {
+      setErrorMsg("⚠️ Los datos de la tarjeta son incompletos o incorrectos.");
+      return;
+    }
+
     setLoading(true);
 
     const order = {
       buyer,
       items: cart,
       total: totalPrecio,
-      paymentMethod, 
+      paymentMethod,
+      // Guardamos solo los últimos 4 si es tarjeta por seguridad simulada
+      paymentDetail: paymentMethod === "Tarjeta" ? `Visa termina en ${paymentData.cardNumber.slice(-4)}` : "Pendiente",
       date: serverTimestamp(),
       status: "generada"
     };
 
     try {
-      // 2. ENVIAMOS A FIREBASE
       const docRef = await addDoc(collection(db, "orders"), order);
       
-      // Simulamos un pequeño delay de 1.5s para que el usuario VEA que se procesó (opcional pero pro)
       setTimeout(() => {
         setOrderId(docRef.id);
         clearCart();
         setLoading(false);
-      }, 1500);
+      }, 2000);
 
     } catch (error) {
       console.error("Error al generar la orden:", error);
+      setErrorMsg("❌ Error de conexión. Intentá nuevamente.");
       setLoading(false);
     }
   };
 
-  // --- EL ORDEN DE ESTOS "IF" ES CRÍTICO ---
+  // --- RENDERS DE ESTADO (IF CRÍTICOS) ---
   
-  // PRIMERO: Si está cargando, mostramos SI O SI el spinner
   if (loading) {
     return (
       <div style={msgContainerStyle}>
         <style>{`
-          .spinner-checkout {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border-left-color: #38bdf8;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-          }
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
+          .spinner-checkout { border: 4px solid rgba(255, 255, 255, 0.1); width: 60px; height: 60px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin-bottom: 20px; }
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         `}</style>
         <div className="spinner-checkout"></div>
-        <h2 style={{ color: '#38bdf8' }}>Procesando tu pedido... 🚀</h2>
-        <p style={{ opacity: 0.7 }}>Estamos conectando con ReadyPOS</p>
+        <h2 style={{ color: '#38bdf8' }}>Validando transacción... 🛡️</h2>
+        <p style={{ opacity: 0.7 }}>Comunicando con la entidad de pago</p>
       </div>
     );
   }
 
-  // SEGUNDO: Si ya terminó y tenemos ID, mostramos éxito
   if (orderId) {
     return (
       <div style={msgContainerStyle}>
-        <h1 style={{ color: '#4ade80' }}>¡Compra Exitosa! 🎉</h1>
-        <p style={{ fontSize: '1.2rem', margin: '20px 0' }}>Tu número de seguimiento es: <strong style={{color: '#38bdf8'}}>{orderId}</strong></p>
-        <Link to="/" style={btnBackStyle}>Volver al Inicio</Link>
+        <h1 style={{ color: '#4ade80' }}>¡Pago Procesado! 🎉</h1>
+        <p style={{ fontSize: '1.2rem', margin: '20px 0' }}>Tu comprobante de ReadyPOS es: <strong style={{color: '#38bdf8'}}>{orderId}</strong></p>
+        <Link to="/" style={btnBackStyle}>Volver a la Tienda</Link>
       </div>
     );
   }
 
-  // TERCERO: Si no está cargando ni terminó, mostramos el formulario
   return (
-    <div style={{ padding: '60px 20px', color: 'white', background: '#0f172a', minHeight: '80vh', maxWidth: '900px', margin: '0 auto' }}>
-      <h1 style={{ color: '#38bdf8', textAlign: 'center', marginBottom: '40px' }}>Finalizar Compra</h1>
+    <div style={{ padding: '40px 20px', color: 'white', background: '#0f172a', minHeight: '80vh', maxWidth: '800px', margin: '0 auto' }}>
+      <h1 style={{ color: '#38bdf8', textAlign: 'center', marginBottom: '40px', fontWeight: 'bold' }}>Checkout Final</h1>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <h3>1. Datos de Envío/Contacto</h3>
-          <input type="text" name="name" placeholder="Nombre completo" required onChange={handleInputChange} style={inputStyle} />
-          <input type="tel" name="phone" placeholder="Teléfono" required onChange={handleInputChange} style={inputStyle} />
-          <input type="email" name="email" placeholder="Email de contacto" required onChange={handleInputChange} style={inputStyle} />
-          
-          <button type="submit" style={btnSubmitStyle}>Confirmar y Pagar</button>
-        </form>
+      {errorMsg && <div style={alertStyle}>{errorMsg}</div>}
 
-        <div style={{ background: '#1e293b', padding: '30px', borderRadius: '15px', border: '1px solid #38bdf8' }}>
-          <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>2. Elegí tu Medio de Pago</h3>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        
+        {/* SECCIÓN 1: DATOS */}
+        <section style={sectionStyle}>
+          <h3 style={sectionTitleStyle}>1. Información del Comprador</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {["Tarjeta", "Transferencia", "MercadoPago", "Efectivo"].map((method) => (
-              <label key={method} style={radioContainerStyle}>
-                <input type="radio" name="payment" value={method} onChange={(e) => setPaymentMethod(e.target.value)} />
-                <span>{method === "Tarjeta" ? "💳 Tarjeta" : method === "Transferencia" ? "🏦 Transferencia" : method === "MercadoPago" ? "📱 Mercado Pago" : "💵 Efectivo"}</span>
+            <input type="text" name="name" placeholder="Nombre completo" required onChange={handleInputChange} style={inputStyle} />
+            <input type="tel" name="phone" placeholder="Teléfono / WhatsApp" required onChange={handleInputChange} style={inputStyle} />
+            <input type="email" name="email" placeholder="Email para recibir factura" required onChange={handleInputChange} style={inputStyle} />
+          </div>
+        </section>
+
+        {/* SECCIÓN 2: PAGO DINÁMICO */}
+        <section style={sectionStyle}>
+          <h3 style={sectionTitleStyle}>2. Selección de Pago</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {["Tarjeta", "MercadoPago", "Transferencia", "Efectivo"].map((m) => (
+              <label 
+                key={m} 
+                style={{
+                    ...radioContainerStyle, 
+                    border: paymentMethod === m ? '1px solid #38bdf8' : '1px solid #334155',
+                    background: paymentMethod === m ? '#1e293b' : 'transparent'
+                }}
+              >
+                <input type="radio" name="payment" value={m} onChange={(e) => setPaymentMethod(e.target.value)} />
+                <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>
+                    {m === "Tarjeta" ? "💳 Tarjeta" : m === "MercadoPago" ? "📱 Mercado Pago" : m === "Transferencia" ? "🏦 Transferencia" : "💵 Efectivo"}
+                </span>
               </label>
             ))}
           </div>
-          <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #334155' }}>
-            <h2 style={{ margin: 0 }}>Total: ${totalPrecio}</h2>
+
+          {/* ÁREA DE SIMULACIÓN DE PAGO */}
+          <div style={{ marginTop: '20px' }}>
+            {paymentMethod === "Tarjeta" && (
+                <div style={paymentDetailBox}>
+                    <input type="text" name="cardNumber" placeholder="Número de Tarjeta (16 dígitos)" maxLength="16" onChange={handlePaymentDataChange} style={{...inputStyle, marginBottom:'10px'}} />
+                    <input type="text" name="cardName" placeholder="Nombre como figura en tarjeta" onChange={handlePaymentDataChange} style={{...inputStyle, marginBottom:'10px'}} />
+                    <div style={{display:'flex', gap:'10px'}}>
+                        <input type="text" name="expiry" placeholder="MM/AA" maxLength="5" style={inputStyle} />
+                        <input type="password" name="cvv" placeholder="CVV" maxLength="3" style={inputStyle} />
+                    </div>
+                </div>
+            )}
+
+            {paymentMethod === "MercadoPago" && (
+                <div style={{...paymentDetailBox, textAlign:'center'}}>
+                    <img src="https://logotipous.com/wp-content/uploads/2021/11/Mercado-Pago-Logo.png" alt="MP" style={{width:'140px', marginBottom:'10px'}} />
+                    <p style={{fontSize:'0.9rem', opacity:0.8}}>Al confirmar, se abrirá el portal seguro de Mercado Pago.</p>
+                </div>
+            )}
+
+            {paymentMethod === "Transferencia" && (
+                <div style={paymentDetailBox}>
+                    <p style={{color:'#38bdf8', margin:0}}><strong>CBU:</strong> 00000031000987654321</p>
+                    <p style={{color:'#38bdf8', margin:0}}><strong>Alias:</strong> readypos.it.oficial</p>
+                    <p style={{fontSize:'0.8rem', marginTop:'10px', opacity:0.7}}>* Recordá enviar el comprobante por mail.</p>
+                </div>
+            )}
           </div>
+        </section>
+
+        {/* CIERRE DE COMPRA */}
+        <div style={totalContainerStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <span style={{ fontSize: '1.2rem' }}>Total a abonar:</span>
+            <span style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#38bdf8' }}>${totalPrecio}</span>
+          </div>
+          <button type="submit" style={btnSubmitStyle}>Confirmar y Pagar 🚀</button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
 
 // --- ESTILOS ---
-const inputStyle = { padding: '12px', borderRadius: '5px', border: '1px solid #334155', background: '#0f172a', color: 'white' };
-const btnSubmitStyle = { background: '#4ade80', color: '#0f172a', padding: '15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', fontSize: '1.2rem', cursor: 'pointer', marginTop: '10px' };
-const radioContainerStyle = { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '8px', border: '1px solid #334155', cursor: 'pointer' };
+const sectionStyle = { background: '#111a2e', padding: '25px', borderRadius: '12px', border: '1px solid #1e293b' };
+const sectionTitleStyle = { color: '#38bdf8', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid #1e293b', paddingBottom: '10px' };
+const inputStyle = { padding: '12px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: 'white', outline: 'none', width:'100%' };
+const paymentDetailBox = { background: '#1e293b', padding: '20px', borderRadius: '10px', border: '1px dashed #38bdf8', animation: 'fadeIn 0.4s ease' };
+const btnSubmitStyle = { background: '#4ade80', color: '#0f172a', padding: '18px', borderRadius: '10px', border: 'none', fontWeight: 'bold', fontSize: '1.3rem', cursor: 'pointer', width:'100%' };
+const radioContainerStyle = { display: 'flex', alignItems: 'center', padding: '15px', borderRadius: '10px', cursor: 'pointer' };
+const totalContainerStyle = { background: '#0f172a', padding: '30px', borderRadius: '15px', border: '2px solid #38bdf8' };
+const alertStyle = { background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', padding: '15px', borderRadius: '10px', border: '1px solid #ef4444', marginBottom: '20px', textAlign: 'center' };
 const msgContainerStyle = { padding: '100px 20px', textAlign: 'center', color: 'white', background: '#0f172a', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' };
-const btnBackStyle = { display: 'inline-block', marginTop: '20px', background: '#38bdf8', color: '#0f172a', padding: '10px 20px', borderRadius: '5px', textDecoration: 'none', fontWeight: 'bold' };
+const btnBackStyle = { display: 'inline-block', marginTop: '20px', background: '#38bdf8', color: '#0f172a', padding: '12px 25px', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' };
 
 export default Checkout;
