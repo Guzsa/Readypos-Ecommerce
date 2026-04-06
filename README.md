@@ -2,7 +2,7 @@
 
 **ReadyPOS** es una Single Page Application (SPA) desarrollada con **React** diseñada para la comercialización de hardware y software para el sector comercial y gastronómico (impresoras fiscales, lectores de códigos, comanderas, etc.).
 
-🔗 **[Ver el proyecto en vivo aquí](https://guzsa.github.io/Readypos-Ecommerce/)**
+🔗 **[Ver el proyecto en vivo aquí](https://santiago-guzman-proyecto-final.vercel.app/#/)**
 
 ---
 
